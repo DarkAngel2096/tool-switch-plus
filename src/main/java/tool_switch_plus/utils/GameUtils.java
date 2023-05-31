@@ -14,11 +14,14 @@ public class GameUtils {
     // variable for hard coding the minimum allowed durability
     protected static int toolMinDurability = 5;
 
-    public static int searchInvForEffectiveTool(ScreenHandler playerContainer, BlockState state) {
+    public static int searchInvForEffectiveTool(ScreenHandler playerContainer, BlockState state, ItemStack currentlyHeldItem) {
         // variable to keep the best slot found, it's speed and durability left
         int slotNum = -1;
         float bestSpeed = 1f;
         int lowestDurability = 0;
+
+        // slot to use incase durability is out and no effective tool found either
+        int fallbackSlot = -1;
 
         // used to keep track of current index (starting from -1 because incrementing it before doing anything else)
         int currentIndex = -1;
@@ -28,6 +31,7 @@ public class GameUtils {
             currentIndex++;
             // check if the item found is not part of the "MiningToolItem" type, if so, continue
             if (!(stack.getItem() instanceof MiningToolItem)) {
+                if (fallbackSlot < 9) fallbackSlot = currentIndex;
                 continue;
             }
 
@@ -51,6 +55,11 @@ public class GameUtils {
                 bestSpeed = itemSpeed;
                 lowestDurability = durabilityLeft;
             }
+        }
+
+        // check if no slotNum found, and if current tool is MiningToolItem with below min durability
+        if (slotNum == -1 && currentlyHeldItem.getItem() instanceof MiningToolItem && isToolBelowMinDurability(currentlyHeldItem)) {
+            slotNum = fallbackSlot;
         }
 
         // return the slot number of the slot with the best item found

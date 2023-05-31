@@ -56,7 +56,7 @@ public class BlockMineMixin {
                 if (GameUtils.isOreBlock(blockState)) {
                     toolSlotFound = GameUtils.findPickWithName(playerContainer, "Ore");
                 } else {
-                    toolSlotFound = GameUtils.searchInvForEffectiveTool(playerContainer, blockState);
+                    toolSlotFound = GameUtils.searchInvForEffectiveTool(playerContainer, blockState, player.getMainHandStack());
                 }
 
                 //LOGGER.info("Slot with best tool is: '{}', current slot is: '{}'", toolSlotFound, currentSlot);
