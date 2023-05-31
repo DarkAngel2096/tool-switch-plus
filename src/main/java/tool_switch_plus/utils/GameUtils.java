@@ -2,39 +2,30 @@ package tool_switch_plus.utils;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.MiningToolItem;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.SlotActionType;
 
 public class GameUtils {
     // variable for hard coding the minimum allowed durability
-    protected static int toolMinDurability = 25;
+    protected static int toolMinDurability = 5;
 
-    public static MinecraftClient getClient() {
-        return MinecraftClient.getInstance();
-    }
-
-    public static ClientPlayerEntity getClientPlayer() {
-        return getClient().player;
-    }
-
-    public static ClientWorld getClientWorld() {
-        return getClient().world;
-    }
-
-    public static int searchInvForEffectiveTool(PlayerInventory inv, BlockState state) {
+    public static int searchInvForEffectiveTool(ScreenHandler playerContainer, BlockState state) {
         // variable to keep the best slot found, it's speed and durability left
         int slotNum = -1;
-        float bestSpeed = -1f;
+        float bestSpeed = 1f;
         int lowestDurability = 0;
 
+        // used to keep track of current index (starting from -1 because incrementing it before doing anything else)
+        int currentIndex = -1;
+
         // loop over the inv, checking what is found against the block given
-        for (ItemStack stack : inv.main) {
+        for (ItemStack stack : playerContainer.getStacks()) {
+            currentIndex++;
             // check if the item found is not part of the "MiningToolItem" type, if so, continue
             if (!(stack.getItem() instanceof MiningToolItem)) {
                 continue;
@@ -56,7 +47,7 @@ public class GameUtils {
 
             // check if durability left less than current lowest and speed higher than current highest
             if (itemSpeed > bestSpeed || (itemSpeed == bestSpeed && durabilityLeft < lowestDurability)) {
-                slotNum = inv.getSlotWithStack(stack);
+                slotNum = currentIndex;
                 bestSpeed = itemSpeed;
                 lowestDurability = durabilityLeft;
             }
@@ -87,12 +78,16 @@ public class GameUtils {
         return speed;
     }
 
-    public static int findPickWithName(PlayerInventory inv, String pickName) {
+    public static int findPickWithName(ScreenHandler playerContainer, String pickName) {
         // variables to use here
         int slotNum = -1;
 
+        // used to keep track of current index (starting from -1 because incrementing it before doing anything else)
+        int currentIndex = -1;
+
         // loop over the inv
-        for (ItemStack stack : inv.main) {
+        for (ItemStack stack : playerContainer.getStacks()) {
+            currentIndex++;
             // check if the item found is not part of the "MiningToolItem" type, if so, continue
             if (!(stack.getItem() instanceof MiningToolItem)) {
                 continue;
@@ -105,7 +100,7 @@ public class GameUtils {
 
             // check if the tool has the custom name specified, otherwise continue
             if (stack.hasCustomName() && stack.getName().getString().equals(pickName)) {
-                slotNum = inv.getSlotWithStack(stack);
+                slotNum = currentIndex;
             }
         }
         // return the slot number of the slot with the pick by the name
@@ -116,19 +111,16 @@ public class GameUtils {
         return blockState.getBlock().getName().toString().toLowerCase().contains("ore");
     }
 
-    public static boolean isToolbarSlotInRange(PlayerEntity player, int minSlot, int maxSlot) {
-        int activeSlot = player.getInventory().selectedSlot;
-        return activeSlot >= minSlot && activeSlot <= maxSlot;
+    public static boolean isToolbarSlotInRange(int currentSlot, int minSlot, int maxSlot) {
+        return currentSlot >= minSlot && currentSlot <= maxSlot;
     }
 
-    public static void swapSlots (PlayerEntity player, int slotIndex1, int slotIndex2) {
-        PlayerInventory playerInv = player.getInventory();
+    public static void swapSlots (MinecraftClient mc, ScreenHandler playerContainer, int toolSlot, int hotbarSlot) {
+        // swap the slots
+        mc.interactionManager.clickSlot(playerContainer.syncId, toolSlot, hotbarSlot, SlotActionType.SWAP, mc.player);
 
-        ItemStack stack1 = playerInv.getStack(slotIndex1);
-        ItemStack stack2 = playerInv.getStack(slotIndex2);
-
-        playerInv.setStack(slotIndex1, stack2);
-        playerInv.setStack(slotIndex2, stack1);
+        // send a update packet to the server
+        mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(hotbarSlot));
     }
 }
 

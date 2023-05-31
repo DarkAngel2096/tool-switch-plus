@@ -1,29 +1,28 @@
 {
   "schemaVersion": 1,
   "id": "tool_switch_plus",
-  "version": "0.0.1",
+  "version": "0.1.0",
 
   "name": "Tool Switch Plus",
-  "description": "A mod that gives you a good configuration on tool switching, making using multiple different enchanted tools for different things.",
+  "description": "A mod that gives you a good configuration on tool switching, making using multiple different enchanted tools for different things a lot easier (hopefully).",
   "authors": [
     "DarkAngel2096"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/DarkAngel2096/tool_switch_plus"
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/tool_switch_plus/icon.png",
 
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
     "main": [
       "tool_switch_plus.MainMod"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "mixins_tool_switch_plus.json"
   ],
 
   "depends": {
@@ -31,8 +30,5 @@
     "fabric-api": "*",
     "minecraft": "~1.19.3",
     "java": ">=17"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }
